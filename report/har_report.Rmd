@@ -1,30 +1,134 @@
 ---
-title: "har_report"
-author: "JRamon"
+title: "Human Activity Recognition (HAR)"
+author: "Jose Ramon Hernandez Galan"
 date: "18/11/2019"
-output: html_document
+output:
+  html_document: default
+  github_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+options(pillar.sigfig = 5, pillar.subtle = FALSE, pillar.bold = TRUE)
+
+load("../rda/har.rda")
 ```
 
-## R Markdown
+## Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This is a report showing the process and results for the creation of a model for human activity recognition (herafter HAR). 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+This is the capstone project of the Data Science course pursued by the author in HarvardX.
 
-```{r cars}
-summary(cars)
+## Dataset
+
+The dataset used in this project is the [**HAR Dataset for benchmarking**](http://groupware.les.inf.puc-rio.br/static/har/dataset-har-PUC-Rio-ugulino.zip) 1
+
+The dataset includes measurements of **inertial sensors** attached to several person while doing normal activities during the day. It also includes data related to the person such as weight, height, etc.
+
+A more detailed description of the dataset can be found [**here**](https://archive.ics.uci.edu/ml/datasets/Wearable+Computing%3A+Classification+of+Body+Postures+and+Movements+%28PUC-Rio%29)
+
+The main goal of this project is to use machine learning techniques in order to predict the human activity. We will compare our results
+
+We will also observe if all 4 sensors are really necessary or if we can use less sensors in order to predict the activity. 
+
+## Analysis
+
+In this section we will prepare the data to work with and explore some important characteristics of the dataset.
+
+### Data wrangling
+The created har dataset has the following structure:
+
+
+  Name              | Type	 | Description 
+  ------------------|--------|--------------------------------------------------------------------|
+  user              | Factor | w/ 4 levels "debora","jose_carlos",..: 1 1 1 1 1 1 1 1 1 1 ...     |
+  gender            | Factor | w/ 2 levels "Man","Woman": 2 2 2 2 2 2 2 2 2 2 ...                 |
+  age               | int    | 46 46 46 46 46 46 46 46 46 46 ...                                  |
+  how_tall_in_meters| num    | 1.62 1.62 1.62 1.62 1.62 1.62 1.62 1.62 1.62 1.62 ...              |
+  weight            | int    | 75 75 75 75 75 75 75 75 75 75 ...                                  |
+  body_mass_index   | num    | 28.6 28.6 28.6 28.6 28.6 28.6 28.6 28.6 28.6 28.6 ...              |
+  x1                | int    | -3 -3 -1 -2 -1 -2 1 -1 -1 0 ...                                    |
+  y1                | int    | 92 94 97 96 96 95 100 97 98 98 ...                                 |
+  z1                | int    | -63 -64 -61 -57 -61 -62 -62 -63 -63 -61 ...                        |
+  x2                | int    | -23 -21 -12 -15 -13 -14 -10 -13 -14 -11 ...                        |
+  y2                | int    | 18 18 20 21 20 19 22 20 19 22 ...                                  |
+  z2                | int    | -19 -18 -15 -16 -15 -16 -12 -15 -17 -13 ...                        |
+  x3                | int    | 5 -14 -13 -13 -13 -13 -13 -12 -13 -13 ...                          |
+  y3                | int    | 104 104 104 104 104 104 104 104 104 104 ...                        |
+  z3                | int    | -92 -90 -90 -89 -89 -89 -90 -88 -90 -90 ...                        |
+  x4                | int    | -150 -149 -151 -153 -153 -153 -151 -151 -152 -151 ...              |
+  y4                | int    | -103 -104 -104 -103 -104 -104 -104 -104 -103 -104 ...              |
+  z4                | int    | 49 47 45 43 44 43 44 43 45 45 ...                                  |
+  class             | Factor | w/ 5 levels "sitting","sittingdown",..: 1 1 1 1 1 1 1 1 1 1 ...    |
+
+
+See the different activites listed in the dataset:
+```{r}
+levels(har$class)
 ```
 
-## Including Plots
+These classes are associated to the values obtained by the sensors (1 to 4) expressed in m/s2. X, Y, Z are the values obtained for each axis.
 
-You can also embed plots, for example:
+### Exploratory Data Analysis
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+In order to understand how th values were taken we will view the sampled data **across the time for sensor 1 values (x,y,z)**. The data was taken during 8 hours. During this time the sensed subject was doing different activites.
+
+<center>
+![](..\\figs\\Raw_Data\\S1-waist.png){width=600px}
+</center>
+This is the sensor located at the waist of the subjects.
+
+**Note** the **unit time** is not specified. We have included a non-scaled time unit for creating the chart.
+
+Some additional **checkings** have been done in order to verify the consistency of data.
+
+```{r}
+# Is there any NAs ?
+nas <- apply(har, MARGIN = 2, function(x) any(is.na(x) | is.infinite(x)))
+if (any(nas) == FALSE) 
+{
+  cat("Great, no NAs or Infinite value in the dataset")
+}else{
+  cat("Attention, some NA or Infinite value was found in the dataset")
+}
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r classes, echo = FALSE}
+# proportion of classes ?
+har %>% group_by(class) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
+```
+
+
+```{r classes-and-users, echo = FALSE}
+# check proportion of classes and users ?
+har %>% group_by(class, user) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
+
+```
+
+Now, we are sure there are NA values in our dataset.
+Also we are sure all users (4) have been measured in all the  different activities (5). Note the prevalance in some user/activity. This also can be observed in the time-based chart above.
+
+
+### Tranining set partitioning
+### Analysis approach
+
+## Model based on Classification Trees
+
+### Decission Tress
+### Random Forest
+### Rborist
+### Final Results
+
+
+## Conclusions
+
+
+### References
+
+1. Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6
+
+Read more: http://groupware.les.inf.puc-rio.br/har#sbia_paper_section#ixzz65cgnrXLU
