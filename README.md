@@ -1,0 +1,2 @@
+# HumanActivityRecognition
+HAR Capstone project
