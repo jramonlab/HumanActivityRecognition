@@ -578,7 +578,7 @@ har %&gt;% group_by(class, user) %&gt;% summarize(n = n(), p = n()/nrow(.)) %&gt
 <td>har_val</td>
 <td>16.565</td>
 <td>1/10 of har</td>
-<td>Set for final valiation</td>
+<td>Set for final validation</td>
 </tr>
 <tr class="odd">
 <td>har_set</td>
@@ -655,7 +655,7 @@ fit_forest &lt;- randomForest(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3
 
 plot(fit_forest)</code></pre>
 <center>
-<img src="data:image/png;base64,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" width="400" />
+<img src="data:image/png;base64,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" />
 </center>
 <p>We choose 50 trees as number of trees to grow and 3 as the number of features to be randomly selected for each tree (parameter called mtry).</p>
 <pre class="r"><code>fit_forest1$mtry</code></pre>
@@ -668,32 +668,51 @@ plot(fit_forest)</code></pre>
 ## 2 Classification tree (rpart) pruned  CP = 0.01 (10 splits)  0.84997
 ## 3 Classification tree (Random Forest) Trees = 50, mtry = 3   0.99497</code></pre>
 </div>
-<div id="rborist" class="section level3">
-<h3>Rborist</h3>
-</div>
 <div id="final-results" class="section level3">
 <h3>Final Results</h3>
-<p>The results obatined on the validation set (har_val) across the different algorithms are shown below:</p>
-<pre><code>## # A tibble: 3 x 3
-##   METHOD                              TUNING                ACCURACY
-##   &lt;chr&gt;                               &lt;chr&gt;                    &lt;dbl&gt;
-## 1 Classification tree (rpart)         CP = 0 (690 splits)    0.97609
-## 2 Classification tree (rpart)         CP = 0.01 (10 splits)  0.80730
-## 3 Classification tree (Random Forest) ...                    0.99420</code></pre>
+<p>Find below the <strong>confusion matrix</strong> obtained from the prediction on the <strong>har_val</strong> set using the randm forest algorithm. Note this set is composed by 16.565 observations.</p>
 <pre><code>##              Reference
 ## Prediction    sitting sittingdown standing standingup walking
-##   sitting        5060           0        0          0       0
-##   sittingdown       3        1164        1         14       3
-##   standing          0           2     4719         10       7
-##   standingup        1           6        3       1199       2
-##   walking           0          11       14         19    4327</code></pre>
+##   sitting        5059           1        0          0       0
+##   sittingdown       2        1165        0         10       4
+##   standing          0           2     4720         10       6
+##   standingup        3           5        3       1204       4
+##   walking           0          10       14         18    4325</code></pre>
+<p>We can observe how the accuracy ir lower on those classes with lesser observations.</p>
+<p>The <strong>accuracy</strong> results obatined on the validation set (har_val) across the different algorithms are shown below:</p>
+<table>
+<thead>
+<tr class="header">
+<th>METHOD</th>
+<th>TUNING</th>
+<th>ACCURACY</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1 Classification tree (rpart)</td>
+<td>CP = 0 (690 splits)</td>
+<td>0.97609</td>
+</tr>
+<tr class="even">
+<td>2 Classification tree (rpart)</td>
+<td>CP = 0.01 (10 splits)</td>
+<td>0.80730</td>
+</tr>
+<tr class="odd">
+<td>3 Classification tree (Random Forest)</td>
+<td>Trees = 50, mtry = 3</td>
+<td>0.99445</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="conclusions" class="section level2">
 <h2>Conclusions</h2>
 <ul>
 <li>Modeling approach. As the outcome is a multi-categorical variable we have decided to use <strong>classification algorithms</strong>, which have provided pretty <strong>high accurate resutls</strong>.</li>
-<li><strong>Results</strong> compared to the author. The accuracy reported by the main contributor [1] is 0.99414, which was predicted on the full har dataset. Our prediction, which was created on a subset of the har dataset (without overtraining), provided an accuracy of <strong>0.99420</strong>.</li>
+<li><strong>Results</strong> compared to the author. The accuracy reported by the main contributor [1] is 0.99414, which was predicted on the full har dataset. Our prediction, which was created on a subset of the har dataset (without overtraining), provided an accuracy of <strong>0.99445</strong>.</li>
 <li><strong>Future work</strong>. The features related to the user are not included in the described models. The <strong>user effect</strong> is something to be analysed. The testbench was used on the data extracted from the same subjects. But what would happen if we test our model on values from different users ? what about different <strong>sensors</strong>?</li>
 </ul>
 <div id="references" class="section level3">

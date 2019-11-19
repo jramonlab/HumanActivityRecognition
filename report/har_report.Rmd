@@ -3,9 +3,9 @@ title: "Human Activity Recognition (HAR)"
 author: "Jose Ramon Hernandez Galan"
 date: "18/11/2019"
 output:
-  html_document: default
-  github_document: default
   pdf_document: default
+  github_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -127,7 +127,7 @@ We have splitted the har original dataset in several sets for training, tuning a
 Dataset       | Observations| Proportions     | Description
 --------------|-------------|-----------------|-----------------
 har           | 165.633     | 1               | Original
-har_val       | 16.565      | 1/10 of har     | Set for final valiation
+har_val       | 16.565      | 1/10 of har     | Set for final validation
 har_set       | 149.068     | 9/10 of har     | Set for model analysis
 har_set_train | 134.158     | 9/10 of har_set | Set for model training
 har_set_test  | 16.565      | 1/10 of har_set | Set for model testing while optiomizing
@@ -202,7 +202,7 @@ plot(fit_forest)
 ```
 
 <center>
-![](..\\figs\\forest_trees_tuning.png){width=400px}
+![](..\\figs\\forest_trees_tuning.png)
 </center>
 
 We choose 50 trees as number of trees to grow and 3 as the number of features to be randomly selected for each tree (parameter called mtry).
@@ -218,22 +218,27 @@ As we can see the accuracy **improves in 2%** with respect to single tree algori
 head(acc_results,3)
 ```
 
-
-### Rborist
-
 ### Final Results
 
-The results obatined on the validation set (har_val) across the different algorithms are shown below:
+Find below the **confusion matrix** obtained from the prediction on the **har_val** set using the randm forest algorithm. Note this set is composed by 16.565 observations.
 
 ```{r acc final results, echo=FALSE}
-acc_final_results
 cm_rf$table
 ```
+We can observe how the accuracy ir lower on those classes with lesser observations.
+
+The **accuracy** results obatined on the validation set (har_val) across the different algorithms are shown below:
+
+  METHOD                             | TUNING               | ACCURACY
+-------------------------------------|----------------------|------------
+1 Classification tree (rpart)        | CP = 0 (690 splits)  |  0.97609
+2 Classification tree (rpart)        | CP = 0.01 (10 splits)|  0.80730
+3 Classification tree (Random Forest)| Trees = 50, mtry = 3 |  **0.99445**
 
 
 ## Conclusions
 * Modeling approach. As the outcome is a multi-categorical variable we have decided to use **classification algorithms**, which have provided pretty **high accurate resutls**.
-* **Results** compared to the author.  The accuracy reported by the main contributor [1] is 0.99414, which was predicted on the full har dataset. Our prediction, which was created on a subset of the har dataset (without overtraining), provided an accuracy of **0.99420**.
+* **Results** compared to the author.  The accuracy reported by the main contributor [1] is 0.99414, which was predicted on the full har dataset. Our prediction, which was created on a subset of the har dataset (without overtraining), provided an accuracy of **0.99445**.
 * **Future work**. The features related to the user are not included in the described models. The **user effect** is something to be analysed. The testbench was used on the data extracted from the same subjects. But what would happen if we test our model on values from different users ? what about different **sensors**?
 
 ### References
