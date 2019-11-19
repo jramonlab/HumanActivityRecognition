@@ -1,3 +1,9 @@
+# Estimated time for whole script is....
+# on amd-A8 64 bits 4 cores 3,6 GHz
+#
+start_time <- Sys.time()
+
+if(!require(readr)) install.packages("readr")
 library(readr)
 
 ##################################################################
@@ -32,15 +38,31 @@ save(har, file = "rda/har.rda")
 #####
 load("rda/har.rda")
 
-library(stringr)
-library(dplyr)
-library(ggplot2)
-library(tidyr)
+if(!require(beepr)) install.packages("beepr")
+library(beepr)
 
-if(!require(beepr))install.packages("beepr")
-if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
-library(rpart)
-library(randomForest)
+if(!require(stringr))install.packages("stringr")
+if(!require(dplyr))  install.packages("dplyr")
+if(!require(ggplot2))install.packages("ggplot2")
+if(!require(tidyr))  install.packages("tidyr")
+
+# library(stringr)
+# library(dplyr)
+# library(ggplot2)
+# library(tidyr)
+
+
+if(!require(caret))       install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(rpart))       install.packages("rpart")
+if(!require(randomForest))install.packages("randomForest")
+
+# library(caret)
+# library(rpart)
+# library(randomForest)
+
+# Needed for proper decimal digits on tibbles
+options(pillar.sigfig = 5, pillar.subtle = FALSE, pillar.bold = TRUE)
+
 
 # Is there any NAs ?
 nas <- apply(har, MARGIN = 2, function(x) any(is.na(x) | is.infinite(x)))
@@ -123,38 +145,11 @@ sensor_4 %>% ggplot(aes(x = class, y = value, color = variable)) +
 
 ggsave("figs/S4-right-upper-arm_BOX.png", width = 5, height = 5)
 
-
-# No clear chart
-# sensors <- data.frame(har$x1, har$y1, har$z1, 
-#                       har$x2, har$y2, har$z2,
-#                       har$x3, har$y3, har$z3,
-#                       har$x4, har$y4, har$z4,
-#                       har$class) %>%
-#   setNames(c("x1", "y1", "z1",
-#              "x2", "y2", "z2",
-#              "x3", "y3", "z3",
-#              "x4", "y4", "z4","class"))
-# 
-# sensors %>% ggplot(aes(x = class, y = value, color = variable)) + 
-#   geom_boxplot(aes(y = x1, col = "x1")) + 
-#   geom_boxplot(aes(y = y1, col = "y1")) + 
-#   geom_boxplot(aes(y = z1, col = "z1")) + 
-#   geom_boxplot(aes(y = x2, col = "x2")) + 
-#   geom_boxplot(aes(y = y2, col = "y2")) + 
-#   geom_boxplot(aes(y = z2, col = "z2")) + 
-#   geom_boxplot(aes(y = x3, col = "x3")) + 
-#   geom_boxplot(aes(y = y3, col = "y3")) + 
-#   geom_boxplot(aes(y = z3, col = "z3")) + 
-#   geom_boxplot(aes(y = x4, col = "x4")) + 
-#   geom_boxplot(aes(y = y4, col = "y4")) + 
-#   geom_boxplot(aes(y = z4, col = "z4")) + 
-#   xlab("Classes") + 
-#   ggtitle("Sensor 1 (Waist) Variability")
-
 ##################################################################
-# data partition for validation (10%)
+# data partition for validation and train(10%)
 #
 set.seed(1)
+
 val_index <- createDataPartition(y = har$class, times = 1, p = 0.1, list = FALSE)
 har_val <- har[val_index,]
 har_set <- har[-val_index,]
@@ -174,6 +169,8 @@ har_set_test %>% group_by(class) %>% summarize(n = n(), p = n()/nrow(.)) %>% arr
 har_set_train %>% group_by(class) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
 
 rm(test_index, val_index)
+
+save(har_set_train, file = "rda/har_set_train.rda")
 
 #
 ##################################################################
@@ -197,8 +194,9 @@ beep()
 har_set_train %>% ggplot(aes(z1, y3, color = class)) +
   geom_point(alpha = 0.3)
 
+ggsave("figs/z1_Vs_y3.png", width = 5, height = 5)
+
 # Predictions
-#
 y_hat_part <- predict(fit_part, har_set_test)
 acc <- confusionMatrix(y_hat_part, reference = har_set_test$class)$overall["Accuracy"]
 acc
@@ -209,20 +207,27 @@ save(fit_part, file = "rda/fit_part.rda")
 #
 # cp = 0
 fit <- rpart(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4, 
-             data = har_set_train, control = rpart.control(cp = 0))
+             data = har_set_train, 
+             control = rpart.control(cp = 0))
+
 plot(fit)
 text(fit, cex = 0.5)
 
 # Predictions
-y_hat_part <- predict(fit_part, har_set_test)
+y_hat_part <- predict(fit, har_set_test)
 acc <- confusionMatrix(y_hat_part, reference = har_set_test$class)$overall["Accuracy"]
 acc
 
+acc_results <- data_frame(METHOD = "Classification tree (rpart)", 
+                          TUNING = "CP = 0 (690 splits)",
+                          ACCURACY = acc)
+
+
 # Pruning the tree
 #
-fit_pruned <- prune(fit, cp = 0.005)
-plot(fit_pruned)
-text(fit_pruned, cex = 0.5)
+fit_pruned <- prune(fit, cp = 0.01)
+plot(fit_pruned, margin = 0)
+text(fit_pruned, cex = 0.8)
 # Predictions
 y_hat_part_pruned <- predict(fit_pruned, har_set_test, type = "class")
 acc_pruned <- confusionMatrix(y_hat_part_pruned, reference = har_set_test$class)$overall["Accuracy"]
@@ -230,38 +235,52 @@ acc_pruned
 
 save(fit_part_pruned, file = "rda/fit_part_pruned.rda")
 
+acc_results <- bind_rows(acc_results,
+                         data_frame(
+                         METHOD = "Classification tree (rpart) pruned", 
+                         TUNING = "CP = 0.01 (10 splits)",
+                         ACCURACY = acc_pruned))
+
+
 # RANDOM FOREST
 #
 set.seed(14)
 mtry <- seq(1,12,1) # number of variables randomly selected for each tree
 
-fit_forest <- randomForest(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4, 
+fit_forest1 <- randomForest(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4, 
                            data = har_set_train,
-                           ntree = 50,
+                           ntree = 100,
                            do.trace = 10,
                            tuneGrid = data.frame(mtry = mtry))
-plot(fit_forest)
-fit_forest$mtry # mtry = 3
 
-start_time <- Sys.time()
+plot(fit_forest1)# 50 trees
+fit_forest1$mtry # mtry = 3
+mtry <- fit_forest1$mtry
 
-mtry <- seq(2,4,1)
+save(fit_forest1, file = "rda/fit_forest1.rda")
+
+# Train control is needed n order to shorten the run time
 control <- trainControl(method="oob", number = 25, p = 0.9)
 fit_forest <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4, 
                     method = "rf",
                     data = har_set_train,
                     ntree = 50,
                     do.trace = 10,
-                   # trControl = control,
+                    trControl = control,
                     tuneGrid = data.frame(mtry = mtry))
 
 ggplot(fit_forest, highlight = TRUE)
 beep()
-cat("Run time : ", Sys.time() - start_time , " minutes")
 
 y_hat_rforest <- predict(fit_forest, har_set_test)
 acc_rforest <- confusionMatrix(y_hat_rforest, reference = har_set_test$class)$overall["Accuracy"]
 acc_rforest
+
+acc_results <- bind_rows(acc_results,
+                         data_frame(
+                         METHOD = "Classification tree (Random Forest)", 
+                         TUNING = "Trees = 50, mtry = 3",
+                         ACCURACY = acc_rforest))
 
 save(fit_forest, file = "rda/fit_forest.rda")
 
@@ -272,7 +291,7 @@ train_rf_2 <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4
                     tuneGrid = data.frame(predFixed = 2, minNode = c(3, 20)),
                     ntree = 50,
                     do.trace = TRUE,
-                   data = har_set_train)
+                    data = har_set_train)
 
 # It takes > 30 min. to run
 beep()
@@ -294,9 +313,60 @@ train_rf <-  train(x[, col_index], y,
 ggplot(train_rf)
 train_rf$bestTune
 
+###############################################
+#
+acc_results
+save(acc_results, file = "rda/acc_results.rda")
+#
+###################################################################
 
 
 ##################################################################
+# FINAL RESULTS. Prediction on har_val
+#
+load("rda/fit_part.rda")
+load("rda/fit_part_pruned.rda")
+load("rda/fit_forest.rda")
+
+# rpart (cp = 0)
+#
+y_hat_part <- predict(fit_part, har_val)
+acc_part <- confusionMatrix(y_hat_part, reference = har_val$class)$overall["Accuracy"]
+
+acc_final_results <- data_frame(METHOD = "Classification tree (rpart)", 
+                          TUNING = "CP = 0 (690 splits)",
+                          ACCURACY = acc_part)
 
 
+# rpart pruned (cp = 0.01)
+#
+y_hat_part_pruned <- predict(fit_part_pruned, har_val, type = "class")
+acc_part_pruned <- confusionMatrix(y_hat_part_pruned, reference = har_val$class)$overall["Accuracy"]
 
+acc_final_results <- bind_rows(acc_final_results,
+                               data_frame(
+                               METHOD = "Classification tree (rpart)", 
+                               TUNING = "CP = 0.01 (10 splits)",
+                               ACCURACY = acc_part_pruned))
+
+
+# random forest
+#
+y_hat_rf <- predict(fit_forest, har_val)
+acc_rf <- confusionMatrix(y_hat_rf, reference = har_val$class)$overall["Accuracy"]
+cm_rf <- confusionMatrix(y_hat_rf, reference = har_val$class)
+
+
+acc_final_results <- bind_rows(acc_final_results,
+                               data_frame(
+                               METHOD = "Classification tree (Random Forest)", 
+                               TUNING = "...",
+                               ACCURACY = acc_rf))
+
+
+save(acc_final_results, file = "rda/acc_final_results.rda")
+save(cm_rf, file = "rda/cm_rf.rda")
+#
+##################################################################
+cat("Run time : ", Sys.time() - start_time , " minutes")
+beep()

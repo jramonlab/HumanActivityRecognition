@@ -19,6 +19,9 @@ options(pillar.sigfig = 5, pillar.subtle = FALSE, pillar.bold = TRUE)
 load("../rda/har.rda")
 load("../rda/har_set_train.rda")
 load("../rda/acc_results.rda")
+load("../rda/acc_final_results.rda")
+load("../rda/cm_rf.rda")
+load("../rda/fit_forest1.rda")
 ```
 
 ## Introduction
@@ -101,20 +104,20 @@ if (any(nas) == FALSE)
 }
 ```
 
-```{r classes, echo = FALSE}
-# proportion of classes ?
+```{r classes, echo = TRUE}
+# proportion of classes
 har %>% group_by(class) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
 ```
 
 
-```{r classes-and-users, echo = FALSE}
-# check proportion of classes and users ?
+```{r classes-and-users, echo = TRUE}
+# check proportion of classes and users
 har %>% group_by(class, user) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
 
 ```
 
-Now, we are sure there are NA values in our dataset.
-Also we are sure all users (4) have been measured in all the  different activities (5). Note the prevalance in some user/activity. This also can be observed in the time-based chart above.
+Now, we are sure there are **not NA values** in our dataset.
+Also we are sure **all users (4)** have been measured in **all the  different activities (5)**. Note the prevalance in some user/activity. This also can be observed in the time-based chart above.
 
 
 ### Data set partitioning
@@ -143,7 +146,7 @@ As final resut we will provide the confusion matrix so it can be compared to hte
 
 ## Model based on Classification Trees
 
-### Decission Tress
+### Decission Trees
 
 ```{r RPART, eval=FALSE}
 fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4 ,
@@ -153,11 +156,11 @@ fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 +
 plot(fit_part)
 
 ```
-
-
+<center>
 ![](..\\figs\\CP_tuning_rpart.png){width=600px}
+</center>
 
-Since the created tree is pretty complex and dense (with 690 splits)we will ommit it.
+Since the created tree (for max accuracy) is pretty complex and dense (with 690 splits) we will ommit it.
 
 When predicting over the har_set_test we obtain following accuracy:
 
@@ -167,7 +170,9 @@ head(acc_results,1)
 
 In order to view a real example of a tree we will create a model with few branches by **pruning** the original tree.
 
+<center>
 ![](..\\figs\\pruned_tree_manual.png){width=600px}
+</center>
 
 
 Note accuracy is lower with a higher Complexity Parameter (CP) as observed in the chart above. A higher CP means that lesser branches will be used to compose the tree. 
@@ -180,13 +185,56 @@ head(acc_results,2)
 
 ### Random Forest
 
+A more optimized algorithm based on classification trees is the random forest. This algorithm creates several trees with randomly selected features and the outcome is calculated by voting for the most probable outcome across all trees.
+
+
+```{r FOREST, eval=FALSE}
+set.seed(14)
+mtry <- seq(1,12,1) # number of variables randomly selected for each tree
+
+fit_forest <- randomForest(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4, 
+                           data = har_set_train,
+                           ntree = 100,
+                           do.trace = 10,
+                           tuneGrid = data.frame(mtry = mtry))
+
+plot(fit_forest)
+```
+
+<center>
+![](..\\figs\\forest_trees_tuning.png){width=400px}
+</center>
+
+We choose 50 trees as number of trees to grow and 3 as the number of features to be randomly selected for each tree (parameter called mtry).
+
+```{r mtry, echo=TRUE}
+fit_forest1$mtry
+```
+
+Some train control is needed so as to speed up the run time of the model training.
+As we can see the accuracy **improves in 2%** with respect to single tree algorithm.
+
+```{r acc forest, echo=FALSE}
+head(acc_results,3)
+```
+
+
 ### Rborist
 
 ### Final Results
 
+The results obatined on the validation set (har_val) across the different algorithms are shown below:
+
+```{r acc final results, echo=FALSE}
+acc_final_results
+cm_rf$table
+```
+
 
 ## Conclusions
-
+* Modeling approach. As the outcome is a multi-categorical variable we have decided to use **classification algorithms**, which have provided pretty **high accurate resutls**.
+* **Results** compared to the author.  The accuracy reported by the main contributor [1] is 0.99414, which was predicted on the full har dataset. Our prediction, which was created on a subset of the har dataset (without overtraining), provided an accuracy of **0.99420**.
+* **Future work**. The features related to the user are not included in the described models. The **user effect** is something to be analysed. The testbench was used on the data extracted from the same subjects. But what would happen if we test our model on values from different users ? what about different **sensors**?
 
 ### References
 
