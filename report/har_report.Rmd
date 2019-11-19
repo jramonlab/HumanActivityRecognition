@@ -25,13 +25,13 @@ This is the capstone project of the Data Science course pursued by the author in
 
 ## Dataset
 
-The dataset used in this project is the [**HAR Dataset for benchmarking**](http://groupware.les.inf.puc-rio.br/static/har/dataset-har-PUC-Rio-ugulino.zip) 1
+The dataset used in this project is the [**HAR Dataset for benchmarking**](http://groupware.les.inf.puc-rio.br/static/har/dataset-har-PUC-Rio-ugulino.zip) [1]
 
 The dataset includes measurements of **inertial sensors** attached to several person while doing normal activities during the day. It also includes data related to the person such as weight, height, etc.
 
-A more detailed description of the dataset can be found [**here**](https://archive.ics.uci.edu/ml/datasets/Wearable+Computing%3A+Classification+of+Body+Postures+and+Movements+%28PUC-Rio%29)
+A more detailed description of the dataset can be found [**here**](https://archive.ics.uci.edu/ml/datasets/Wearable+Computing%3A+Classification+of+Body+Postures+and+Movements+%28PUC-Rio%29).
 
-The main goal of this project is to use machine learning techniques in order to predict the human activity. We will compare our results
+The main goal of this project is to use machine learning techniques in order to predict the human activity. We will compare our results to those obtained by the main [**contributor**](http://groupware.les.inf.puc-rio.br/har) [1].
 
 We will also observe if all 4 sensors are really necessary or if we can use less sensors in order to predict the activity. 
 
@@ -113,14 +113,55 @@ Now, we are sure there are NA values in our dataset.
 Also we are sure all users (4) have been measured in all the  different activities (5). Note the prevalance in some user/activity. This also can be observed in the time-based chart above.
 
 
-### Tranining set partitioning
+### Data set partitioning
+
+We have splitted the har original dataset in several sets for training, tuning and validatiaon.
+
+Dataset       | Observations| Proportions     | Description
+--------------|-------------|-----------------|-----------------
+har           | 165.633     | 1               | Original
+har_val       | 16.565      | 1/10 of har     | Set for final valiation
+har_set       | 149.068     | 9/10 of har     | Set for model analysis
+har_set_train | 134.158     | 9/10 of har_set | Set for model training
+har_set_test  | 16.565      | 1/10 of har_set | Set for model testing while optiomizing
+
 ### Analysis approach
+
+Since the outcome of the dataset is **multi-categorical** variable (class: sitting, sittingdown, standing, standingup, walking) with 5 possible values we have been focused on **classifcation algorithms** that supports such variables. The algorithm chosen is the **decisssion trees** and its derivatives.
+
+We will only focus on **features** provided by the **sensors** (x1..z4).
+
+### How results are measured
+
+The results are measured by the **accuracy** when classsifying the sensor observations.
+
+As final resut we will provide the confusion matrix so it can be compared to hte results in [1].
 
 ## Model based on Classification Trees
 
 ### Decission Tress
+
+```{r RPART, echo=TRUE}
+library(caret)
+load("..//rda//har_set_train.rda")
+fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4 ,
+                  method = "rpart", 
+                  tuneGrid = data.frame(cp = seq(0.0, 0.1, len = 10)),
+                  data = har_set_train) 
+plot(fit_part)
+
+```
+
+
+<center>
+![](..\\figs\\CP_tuning_rpart.png){width=600px}
+<center>
+
+
 ### Random Forest
+
 ### Rborist
+
 ### Final Results
 
 

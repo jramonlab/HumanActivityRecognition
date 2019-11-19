@@ -42,7 +42,7 @@ sensor_1_waist %>% ggplot(aes(x = id, y = value, color = variable)) +
   xlab("Unit Time")+ 
   ggtitle("Sensor 1 (Waist) Vs Time")
 
-ggsave("figs/S1-waist.png", width = 5, height = 5)
+ggsave("figs/S1-waist.png", width = 5, height = 3)
 
 
 # showing Sensor_2 Vs Time

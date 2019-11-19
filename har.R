@@ -51,8 +51,15 @@ if (any(nas) == FALSE)
   cat("Attention, some NA or Infinite value was found in the dataset")
 }
 
-# proportion of classes
+# proportion of classes ?
 har %>% group_by(class) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
+
+# proportion of users for all class ?
+har %>% group_by(user) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
+
+# check proportion of classes and users ?
+har %>% group_by(class, user) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
+
 
 # Grouping by class let´s observe the sensor values
 har %>% group_by(class) %>% summarize(x1_avg = mean(x1),
