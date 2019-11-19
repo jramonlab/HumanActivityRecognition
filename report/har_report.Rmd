@@ -12,9 +12,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
+library(caret)
+library(rpart)
 options(pillar.sigfig = 5, pillar.subtle = FALSE, pillar.bold = TRUE)
 
 load("../rda/har.rda")
+load("../rda/har_set_train.rda")
+load("../rda/acc_results.rda")
 ```
 
 ## Introduction
@@ -141,9 +145,7 @@ As final resut we will provide the confusion matrix so it can be compared to hte
 
 ### Decission Tress
 
-```{r RPART, echo=TRUE}
-library(caret)
-load("..//rda//har_set_train.rda")
+```{r RPART, eval=FALSE}
 fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4 ,
                   method = "rpart", 
                   tuneGrid = data.frame(cp = seq(0.0, 0.1, len = 10)),
@@ -153,9 +155,27 @@ plot(fit_part)
 ```
 
 
-<center>
 ![](..\\figs\\CP_tuning_rpart.png){width=600px}
-<center>
+
+Since the created tree is pretty complex and dense (with 690 splits)we will ommit it.
+
+When predicting over the har_set_test we obtain following accuracy:
+
+```{r echo=FALSE}
+head(acc_results,1)
+```
+
+In order to view a real example of a tree we will create a model with few branches by **pruning** the original tree.
+
+![](..\\figs\\pruned_tree_manual.png){width=600px}
+
+
+Note accuracy is lower with a higher Complexity Parameter (CP) as observed in the chart above. A higher CP means that lesser branches will be used to compose the tree. 
+
+```{r acc with pruning, echo=FALSE}
+head(acc_results,2)
+```
+
 
 
 ### Random Forest
