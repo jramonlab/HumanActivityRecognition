@@ -3,8 +3,8 @@ title: "Human Activity Recognition (HAR)"
 author: "Jose Ramon Hernandez Galan"
 date: "18/11/2019"
 output:
-  pdf_document: default
   github_document: default
+  pdf_document: default
   html_document: default
 ---
 

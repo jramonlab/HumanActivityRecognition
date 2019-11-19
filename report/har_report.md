@@ -287,15 +287,9 @@ single tree algorithm.
 
 ### Final Results
 
-The results obatined on the validation set (har\_val) across the
-different algorithms are shown
-below:
-
-| METHOD                                | TUNING                | ACCURACY |
-| ------------------------------------- | --------------------- | -------- |
-| 1 Classification tree (rpart)         | CP = 0 (690 splits)   | 0.97609  |
-| 2 Classification tree (rpart)         | CP = 0.01 (10 splits) | 0.80730  |
-| 3 Classification tree (Random Forest) | Trees = 50, mtry = 3  | 0.99420  |
+Find below the **confusion matrix** obtained from the prediction on the
+**har\_val** set using the randm forest algorithm. Note this set is
+composed by 16.565 observations.
 
     ##              Reference
     ## Prediction    sitting sittingdown standing standingup walking
@@ -304,6 +298,19 @@ below:
     ##   standing          0           2     4720         10       6
     ##   standingup        3           5        3       1204       4
     ##   walking           0          10       14         18    4325
+
+We can observe how the accuracy ir lower on those classes with lesser
+observations.
+
+The **accuracy** results obatined on the validation set (har\_val)
+across the different algorithms are shown
+below:
+
+| METHOD                                | TUNING                | ACCURACY    |
+| ------------------------------------- | --------------------- | ----------- |
+| 1 Classification tree (rpart)         | CP = 0 (690 splits)   | 0.97609     |
+| 2 Classification tree (rpart)         | CP = 0.01 (10 splits) | 0.80730     |
+| 3 Classification tree (Random Forest) | Trees = 50, mtry = 3  | **0.99445** |
 
 ## Conclusions
 
@@ -314,7 +321,7 @@ below:
     main contributor \[1\] is 0.99414, which was predicted on the full
     har dataset. Our prediction, which was created on a subset of the
     har dataset (without overtraining), provided an accuracy of
-    **0.99420**.
+    **0.99445**.
   - **Future work**. The features related to the user are not included
     in the described models. The **user effect** is something to be
     analysed. The testbench was used on the data extracted from the same
