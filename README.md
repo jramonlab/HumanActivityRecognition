@@ -12,3 +12,4 @@ Main files:
 View full report here:
 
 https://jramonlab.github.io/HumanActivityRecognition/
+https://jramonlab.github.io/HumanActivityRecognition/har_report.pdf
