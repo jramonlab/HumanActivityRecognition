@@ -7,3 +7,8 @@ Main files:
 - report/har_report.Rmd
 - report/har_report.pdf
 - report/har_report.md (note images are not loaded)
+
+
+View full report here:
+
+https://jramonlab.github.io/HumanActivityRecognition/
