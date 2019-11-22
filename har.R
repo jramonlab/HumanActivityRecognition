@@ -1,5 +1,5 @@
-# Estimated time for whole script is....
-# on amd-A8 64 bits 4 cores 3,6 GHz
+# Estimated time for whole script is.... 9 minutes
+# On Amd-A8 64 bits 4 cores 3,6 GHz. 8 GB RAM
 #
 start_time <- Sys.time()
 
@@ -17,6 +17,16 @@ skip_lines <- 0
 # Example with few obsrvations
 #url_dataset <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00250/example-data.dat"
 #skip_lines <- 12
+
+# File tree structure. Set the working directory where the file is
+wd <- getwd()
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+wd <- getwd()
+
+system("mkdir data")
+system("mkdir rda")
+system("mkdir figs")
+system("mkdir report")
 
 temp_file <- "./data/dataset-har-PUC-Rio-ugulino.zip"
 download.file(url_dataset, temp_file)
@@ -46,23 +56,14 @@ if(!require(dplyr))  install.packages("dplyr")
 if(!require(ggplot2))install.packages("ggplot2")
 if(!require(tidyr))  install.packages("tidyr")
 
-# library(stringr)
-# library(dplyr)
-# library(ggplot2)
-# library(tidyr)
-
-
 if(!require(caret))       install.packages("caret", repos = "http://cran.us.r-project.org")
 if(!require(rpart))       install.packages("rpart")
 if(!require(randomForest))install.packages("randomForest")
 
-# library(caret)
-# library(rpart)
-# library(randomForest)
-
 # Needed for proper decimal digits on tibbles
 options(pillar.sigfig = 5, pillar.subtle = FALSE, pillar.bold = TRUE)
-
+# No text truncation on tibble columns
+options(tibble.width = Inf)
 
 # Is there any NAs ?
 nas <- apply(har, MARGIN = 2, function(x) any(is.na(x) | is.infinite(x)))
@@ -82,8 +83,7 @@ har %>% group_by(user) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(
 # check proportion of classes and users ?
 har %>% group_by(class, user) %>% summarize(n = n(), p = n()/nrow(.)) %>% arrange(desc(p))
 
-
-# Grouping by class let´s observe the sensor values
+# Grouping by class letÂ´s observe the sensor values
 har %>% group_by(class) %>% summarize(x1_avg = mean(x1),
                                       y1_avg = mean(y1),
                                       z1_avg = mean(z1),
@@ -175,6 +175,7 @@ save(har_set_train, file = "rda/har_set_train.rda")
 #
 ##################################################################
 # Modeling (only sensors)
+###############?
 # CLASSIFICATION TREES
 #
 fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4 ,
@@ -182,7 +183,7 @@ fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 +
                   tuneGrid = data.frame(cp = seq(0.0, 0.1, len = 10)),
                   data = har_set_train) 
 
-load("rda/fit_part.rda")
+#load("rda/fit_part.rda")
 
 plot(fit_part)
 plot(fit_part$finalModel)
@@ -214,22 +215,23 @@ plot(fit)
 text(fit, cex = 0.5)
 
 # Predictions
-y_hat_part <- predict(fit, har_set_test)
+y_hat_part <- predict(fit, har_set_test, type = "class")
 acc <- confusionMatrix(y_hat_part, reference = har_set_test$class)$overall["Accuracy"]
 acc
 
-acc_results <- data_frame(METHOD = "Classification tree (rpart)", 
-                          TUNING = "CP = 0 (690 splits)",
+acc_results <- data_frame(METHOD = "Classification tree(rpart)", 
+                          TUNING = "CP=0(690 splits)",
+                          SENSORS = "1,2,3,4",
                           ACCURACY = acc)
 
 
 # Pruning the tree
 #
-fit_pruned <- prune(fit, cp = 0.01)
-plot(fit_pruned, margin = 0)
-text(fit_pruned, cex = 0.8)
+fit_part_pruned <- prune(fit, cp = 0.01)
+plot(fit_part_pruned, margin = 0)
+text(fit_part_pruned, cex = 0.8)
 # Predictions
-y_hat_part_pruned <- predict(fit_pruned, har_set_test, type = "class")
+y_hat_part_pruned <- predict(fit_part_pruned, har_set_test, type = "class")
 acc_pruned <- confusionMatrix(y_hat_part_pruned, reference = har_set_test$class)$overall["Accuracy"]
 acc_pruned
 
@@ -237,11 +239,12 @@ save(fit_part_pruned, file = "rda/fit_part_pruned.rda")
 
 acc_results <- bind_rows(acc_results,
                          data_frame(
-                         METHOD = "Classification tree (rpart) pruned", 
-                         TUNING = "CP = 0.01 (10 splits)",
+                         METHOD = "Classification tree(rpart) pruned", 
+                         TUNING = "CP=0.01(10 splits)",
+                         SENSORS = "1,2,3,4",
                          ACCURACY = acc_pruned))
 
-
+###############?
 # RANDOM FOREST
 #
 set.seed(14)
@@ -269,49 +272,70 @@ fit_forest <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4
                     trControl = control,
                     tuneGrid = data.frame(mtry = mtry))
 
-ggplot(fit_forest, highlight = TRUE)
-beep()
-
+# Predictions
 y_hat_rforest <- predict(fit_forest, har_set_test)
 acc_rforest <- confusionMatrix(y_hat_rforest, reference = har_set_test$class)$overall["Accuracy"]
 acc_rforest
 
 acc_results <- bind_rows(acc_results,
                          data_frame(
-                         METHOD = "Classification tree (Random Forest)", 
-                         TUNING = "Trees = 50, mtry = 3",
+                         METHOD = "Classification tree(Random Forest)", 
+                         TUNING = "Trees=50,mtry=3",
+                         SENSORS = "1,2,3,4",
                          ACCURACY = acc_rforest))
 
 save(fit_forest, file = "rda/fit_forest.rda")
 
-# RBORIST
-#
-train_rf_2 <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4,
-                    method = "Rborist",
-                    tuneGrid = data.frame(predFixed = 2, minNode = c(3, 20)),
-                    ntree = 50,
-                    do.trace = TRUE,
-                    data = har_set_train)
+#################################################################
+#Checking variable importance
 
-# It takes > 30 min. to run
-beep()
-confusionMatrix(predict(train_rf_2, har_set_test),har_set_test$class)$overall["Accuracy"]
-save(train_rf_2, file = "rda/fit_rborist.rda")
+imp <- varImp(fit_forest)
+imp
 
+# Let´s see how it performs with only 2 sensors. 
+# We pick the most important ones (1 and 2)
+mtry <- seq(1,12,1) # number of variables randomly selected for each tree
 
+fit_forest_2s <- randomForest(class ~ x1 + y1 + z1 + x2 + y2 + z2, 
+                            data = har_set_train,
+                            ntree = 100,
+                            do.trace = 10,
+                            tuneGrid = data.frame(mtry = mtry))
 
-library(Rborist)
-control <- trainControl(method="cv", number = 5, p = 0.8)
-grid <- expand.grid(minNode = c(1,5) , predFixed = c(10, 15, 25, 35, 50))
-train_rf <-  train(x[, col_index], y,
-                   method = "Rborist",
-                   nTree = 50,
-                   trControl = control,
-                   tuneGrid = grid,
-                   nSamp = 5000)
+# Predictions
+y_hat_rforest_2s <- predict(fit_forest_2s, har_set_test)
+acc_rforest_2s <- confusionMatrix(y_hat_rforest_2s, reference = har_set_test$class)$overall["Accuracy"]
+acc_rforest_2s
 
-ggplot(train_rf)
-train_rf$bestTune
+save(fit_forest, file = "rda/fit_forest_2s.rda")
+
+acc_results <- bind_rows(acc_results,
+                         data_frame(
+                           METHOD = "Classification tree(Random Forest)", 
+                           TUNING = "Trees=50,mtry=3",
+                           SENSORS = "1,2",
+                           ACCURACY = acc_rforest_2s))
+
+# Now, We pick the most important ones (1 and 2 and 3)
+fit_forest_3s <- randomForest(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3, 
+                              data = har_set_train,
+                              ntree = 100,
+                              do.trace = 10,
+                              tuneGrid = data.frame(mtry = mtry))
+
+# Predictions
+y_hat_rforest_3s <- predict(fit_forest_3s, har_set_test)
+acc_rforest_3s <- confusionMatrix(y_hat_rforest_3s, reference = har_set_test$class)$overall["Accuracy"]
+acc_rforest_3s
+
+save(fit_forest, file = "rda/fit_forest_3s.rda")
+
+acc_results <- bind_rows(acc_results,
+                         data_frame(
+                           METHOD = "Classification tree(Random Forest)", 
+                           TUNING = "Trees=50,mtry=3",
+                           SENSORS = "1,2,3",
+                           ACCURACY = acc_rforest_3s))
 
 ###############################################
 #
@@ -333,8 +357,9 @@ load("rda/fit_forest.rda")
 y_hat_part <- predict(fit_part, har_val)
 acc_part <- confusionMatrix(y_hat_part, reference = har_val$class)$overall["Accuracy"]
 
-acc_final_results <- data_frame(METHOD = "Classification tree (rpart)", 
-                          TUNING = "CP = 0 (690 splits)",
+acc_final_results <- data_frame(METHOD = "Classification tree(rpart)", 
+                          TUNING = "CP=0(690 splits)",
+                          SENSORS = "1,2,3,4",
                           ACCURACY = acc_part)
 
 
@@ -345,8 +370,9 @@ acc_part_pruned <- confusionMatrix(y_hat_part_pruned, reference = har_val$class)
 
 acc_final_results <- bind_rows(acc_final_results,
                                data_frame(
-                               METHOD = "Classification tree (rpart)", 
-                               TUNING = "CP = 0.01 (10 splits)",
+                               METHOD = "Classification tree(rpart) pruned", 
+                               TUNING = "CP=0.01(10 splits)",
+                               SENSORS = "1,2,3,4",
                                ACCURACY = acc_part_pruned))
 
 
@@ -359,14 +385,17 @@ cm_rf <- confusionMatrix(y_hat_rf, reference = har_val$class)
 
 acc_final_results <- bind_rows(acc_final_results,
                                data_frame(
-                               METHOD = "Classification tree (Random Forest)", 
-                               TUNING = "...",
+                               METHOD = "Classification tree(Random Forest)", 
+                               TUNING = "Trees=50,mtry=3",
+                               SENSORS = "1,2,3,4",
                                ACCURACY = acc_rf))
 
 
 save(acc_final_results, file = "rda/acc_final_results.rda")
 save(cm_rf, file = "rda/cm_rf.rda")
-#
-##################################################################
+
+#################################################################
 cat("Run time : ", Sys.time() - start_time , " minutes")
 beep()
+
+acc_final_results

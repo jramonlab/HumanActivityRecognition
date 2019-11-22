@@ -11,6 +11,14 @@ model for human activity recognition (herafter HAR).
 This is the capstone project of the Data Science course pursued by the
 author in HarvardX.
 
+The main **goal** of this project is to use machine learning techniques
+in order to predict the human activity based on the data extracted from
+on-body sensors. We will compare our results to those obtained by the
+main [**contributor**](http://groupware.les.inf.puc-rio.br/har) \[1\].
+
+We will also try to observe if all 4 sensors are really necessary and if
+we can use less sensors in order to predict the activity.
+
 ## Dataset
 
 The dataset used in this project is the [**HAR Dataset for
@@ -18,19 +26,11 @@ benchmarking**](http://groupware.les.inf.puc-rio.br/static/har/dataset-har-PUC-R
 \[1\]
 
 The dataset includes measurements of **inertial sensors** attached to
-several person while doing normal activities during the day. It also
+several people while doing normal activities during the day. It also
 includes data related to the person such as weight, height, etc.
 
 A more detailed description of the dataset can be found
 [**here**](https://archive.ics.uci.edu/ml/datasets/Wearable+Computing%3A+Classification+of+Body+Postures+and+Movements+%28PUC-Rio%29).
-
-The main goal of this project is to use machine learning techniques in
-order to predict the human activity. We will compare our results to
-those obtained by the main
-[**contributor**](http://groupware.les.inf.puc-rio.br/har) \[1\].
-
-We will also observe if all 4 sensors are really necessary or if we can
-use less sensors in order to predict the activity.
 
 ## Analysis
 
@@ -39,30 +39,29 @@ important characteristics of the dataset.
 
 ### Data wrangling
 
-The created har dataset has the following
-structure:
+The created har dataset has the following structure:
 
-| Name                  | Type   | Description                                                   |
-| --------------------- | ------ | ------------------------------------------------------------- |
-| user                  | Factor | w/ 4 levels “debora”,“jose\_carlos”,..: 1 1 1 1 1 1 1 1 1 1 … |
-| gender                | Factor | w/ 2 levels “Man”,“Woman”: 2 2 2 2 2 2 2 2 2 2 …              |
-| age                   | int    | 46 46 46 46 46 46 46 46 46 46 …                               |
-| how\_tall\_in\_meters | num    | 1.62 1.62 1.62 1.62 1.62 1.62 1.62 1.62 1.62 1.62 …           |
-| weight                | int    | 75 75 75 75 75 75 75 75 75 75 …                               |
-| body\_mass\_index     | num    | 28.6 28.6 28.6 28.6 28.6 28.6 28.6 28.6 28.6 28.6 …           |
-| x1                    | int    | \-3 -3 -1 -2 -1 -2 1 -1 -1 0 …                                |
-| y1                    | int    | 92 94 97 96 96 95 100 97 98 98 …                              |
-| z1                    | int    | \-63 -64 -61 -57 -61 -62 -62 -63 -63 -61 …                    |
-| x2                    | int    | \-23 -21 -12 -15 -13 -14 -10 -13 -14 -11 …                    |
-| y2                    | int    | 18 18 20 21 20 19 22 20 19 22 …                               |
-| z2                    | int    | \-19 -18 -15 -16 -15 -16 -12 -15 -17 -13 …                    |
-| x3                    | int    | 5 -14 -13 -13 -13 -13 -13 -12 -13 -13 …                       |
-| y3                    | int    | 104 104 104 104 104 104 104 104 104 104 …                     |
-| z3                    | int    | \-92 -90 -90 -89 -89 -89 -90 -88 -90 -90 …                    |
-| x4                    | int    | \-150 -149 -151 -153 -153 -153 -151 -151 -152 -151 …          |
-| y4                    | int    | \-103 -104 -104 -103 -104 -104 -104 -104 -103 -104 …          |
-| z4                    | int    | 49 47 45 43 44 43 44 43 45 45 …                               |
-| class                 | Factor | w/ 5 levels “sitting”,“sittingdown”,..: 1 1 1 1 1 1 1 1 1 1 … |
+| Name                  | Type   | Description                         |
+| --------------------- | ------ | ----------------------------------- |
+| user                  | Factor | w/ 4 levels “debora”,“jose\_carlos” |
+| gender                | Factor | w/ 2 levels “Man”,“Woman”:          |
+| age                   | int    | user age                            |
+| how\_tall\_in\_meters | num    | height                              |
+| weight                | int    | weight in kg                        |
+| body\_mass\_index     | num    | body mass                           |
+| x1                    | int    | sensor 1 axis x in m/s2             |
+| y1                    | int    | sensor 1 axis y in m/s2             |
+| z1                    | int    | sensor 1 axis z in m/s2             |
+| x2                    | int    | sensor 2 axis x in m/s2             |
+| y2                    | int    | sensor 2 axis x in m/s2             |
+| z2                    | int    | sensor 2 axis x in m/s2             |
+| x3                    | int    | sensor 3 axis x in m/s2             |
+| y3                    | int    | sensor 3 axis x in m/s2             |
+| z3                    | int    | sensor 3 axis x in m/s2             |
+| x4                    | int    | sensor 4 axis x in m/s2             |
+| y4                    | int    | sensor 4 axis x in m/s2             |
+| z4                    | int    | sensor 4 axis x in m/s2             |
+| class                 | Factor | Activity type. w/ 5 levels          |
 
 See the different activites listed in the
     dataset:
@@ -78,10 +77,10 @@ These classes are associated to the values obtained by the sensors (1 to
 
 ### Exploratory Data Analysis
 
-In order to understand how th values were taken we will view the sampled
-data **across the time for sensor 1 values (x,y,z)**. The data was taken
-during 8 hours. During this time the sensed subject was doing different
-activites.
+In order to understand how the values were taken we will view the
+sampled data **across the time for sensor 1 values (x,y,z)**. The data
+was taken during 8 hours. During this time the sensed subject was doing
+different activites.
 
 <center>
 
@@ -178,23 +177,26 @@ validatiaon.
 Since the outcome of the dataset is **multi-categorical** variable
 (class: sitting, sittingdown, standing, standingup, walking) with 5
 possible values we have been focused on **classifcation algorithms**
-that supports such variables. The algorithm chosen is the **decisssion
-trees** and its derivatives.
+that support such variables. The algorithm chosen is the **decission
+trees** and its derivative random forest.
 
 We will only focus on **features** provided by the **sensors** (x1..z4).
 
 ### How results are measured
 
-The results are measured by the **accuracy** when classsifying the
-sensor observations.
+The results are measured by the **accuracy** when classifying the sensor
+observations.
 
 As final resut we will provide the confusion matrix so it can be
-compared to hte results in
-\[1\].
+compared to hte results in \[1\].
 
 ## Model based on Classification Trees
 
-### Decission Trees
+### Decision Trees
+
+By using the functions found in the caret package we have created the
+model for the decision
+tree.
 
 ``` r
 fit_part <- train(class ~ x1 + y1 + z1 + x2 + y2 + z2 + x3 + y3 + z3 + x4 + y4 + z4 ,
@@ -210,15 +212,16 @@ plot(fit_part)
 
 </center>
 
-Since the created tree (for max accuracy) is pretty complex and dense
-(with 690 splits) we will ommit it.
+Since the created tree (the one for max accuracy) is pretty complex and
+dense (with 690 splits) we will ommit it. Below we will show a more
+simple tree as example.
 
 When predicting over the har\_set\_test we obtain following accuracy:
 
-    ## # A tibble: 1 x 3
-    ##   METHOD                      TUNING              ACCURACY
-    ##   <chr>                       <chr>                  <dbl>
-    ## 1 Classification tree (rpart) CP = 0 (690 splits)  0.97632
+    ## # A tibble: 1 x 4
+    ##   METHOD                     TUNING           SENSORS ACCURACY
+    ##   <chr>                      <chr>            <chr>      <dbl>
+    ## 1 Classification tree(rpart) CP=0(690 splits) 1,2,3,4  0.97632
 
 In order to view a real example of a tree we will create a model with
 few branches by **pruning** the original tree.
@@ -233,11 +236,12 @@ Note accuracy is lower with a higher Complexity Parameter (CP) as
 observed in the chart above. A higher CP means that lesser branches will
 be used to compose the tree.
 
-    ## # A tibble: 2 x 3
-    ##   METHOD                             TUNING                ACCURACY
-    ##   <chr>                              <chr>                    <dbl>
-    ## 1 Classification tree (rpart)        CP = 0 (690 splits)    0.97632
-    ## 2 Classification tree (rpart) pruned CP = 0.01 (10 splits)  0.84997
+    ## # A tibble: 3 x 4
+    ##   METHOD                             TUNING             SENSORS ACCURACY
+    ##   <chr>                              <chr>              <chr>      <dbl>
+    ## 1 Classification tree(rpart)         CP=0(690 splits)   1,2,3,4  0.97632
+    ## 2 Classification tree(rpart) pruned  CP=0.01(10 splits) 1,2,3,4  0.84997
+    ## 3 Classification tree(Random Forest) Trees=50,mtry=3    1,2,3,4  0.99497
 
 ### Random Forest
 
@@ -276,30 +280,71 @@ fit_forest1$mtry
 
 Some train control is needed so as to speed up the run time of the model
 training. As we can see the accuracy **improves in 2%** with respect to
-single tree algorithm.
+a single tree algorithm.
 
-    ## # A tibble: 3 x 3
-    ##   METHOD                              TUNING                ACCURACY
-    ##   <chr>                               <chr>                    <dbl>
-    ## 1 Classification tree (rpart)         CP = 0 (690 splits)    0.97632
-    ## 2 Classification tree (rpart) pruned  CP = 0.01 (10 splits)  0.84997
-    ## 3 Classification tree (Random Forest) Trees = 50, mtry = 3   0.99497
+    ## # A tibble: 3 x 4
+    ##   METHOD                             TUNING             SENSORS ACCURACY
+    ##   <chr>                              <chr>              <chr>      <dbl>
+    ## 1 Classification tree(rpart)         CP=0(690 splits)   1,2,3,4  0.97632
+    ## 2 Classification tree(rpart) pruned  CP=0.01(10 splits) 1,2,3,4  0.84997
+    ## 3 Classification tree(Random Forest) Trees=50,mtry=3    1,2,3,4  0.99497
 
-### Final Results
+#### Random Forest (Sensor importance)
+
+Let´s analyze how important is each feature in the model.
+
+``` r
+varImp(fit_forest)
+```
+
+    ## rf variable importance
+    ## 
+    ##    Overall
+    ## z1  100.00
+    ## z2   89.65
+    ## y2   84.98
+    ## y3   72.84
+    ## x4   47.95
+    ## y1   44.35
+    ## z4   43.09
+    ## z3   29.86
+    ## x2   28.78
+    ## x3   13.41
+    ## y4    6.83
+    ## x1    0.00
+
+According to the table above the importance of the sensors is ordered as
+follwos (from most to least): **S1 (waist)**, S3 (right angkle), S2(left
+thigh), S4(rigth upper arm).
+
+Let´s observe how the model would perform in case of selecting the most
+important sensors.
+
+    ## # A tibble: 3 x 4
+    ##   METHOD                             TUNING          SENSORS ACCURACY
+    ##   <chr>                              <chr>           <chr>      <dbl>
+    ## 1 Classification tree(Random Forest) Trees=50,mtry=3 1,2,3,4  0.99497
+    ## 2 Classification tree(Random Forest) Trees=50,mtry=3 1,2      0.96003
+    ## 3 Classification tree(Random Forest) Trees=50,mtry=3 1,2,3    0.99081
+
+Result with **2 sensors is too poor**, but if we use 3 sensors the
+results get close to values obatined with all 4 sensors.
+
+## Final Results
 
 Find below the **confusion matrix** obtained from the prediction on the
-**har\_val** set using the randm forest algorithm. Note this set is
-composed by 16.565 observations.
+**har\_val** set using the randm forest algorithm overa all 4 sensor
+values. Note this set is composed by 16.565 observations.
 
     ##              Reference
     ## Prediction    sitting sittingdown standing standingup walking
     ##   sitting        5059           1        0          0       0
-    ##   sittingdown       2        1165        0         10       4
+    ##   sittingdown       2        1165        0          9       4
     ##   standing          0           2     4720         10       6
-    ##   standingup        3           5        3       1204       4
-    ##   walking           0          10       14         18    4325
+    ##   standingup        3           6        3       1205       4
+    ##   walking           0           9       14         18    4325
 
-We can observe how the accuracy ir lower on those classes with lesser
+We can observe how the accuracy is lower on those classes with lesser
 observations.
 
 The **accuracy** results obatined on the validation set (har\_val)
@@ -309,19 +354,29 @@ below:
 | METHOD                                | TUNING                | ACCURACY    |
 | ------------------------------------- | --------------------- | ----------- |
 | 1 Classification tree (rpart)         | CP = 0 (690 splits)   | 0.97609     |
-| 2 Classification tree (rpart)         | CP = 0.01 (10 splits) | 0.80730     |
-| 3 Classification tree (Random Forest) | Trees = 50, mtry = 3  | **0.99445** |
+| 2 Classification tree (rpart)         | CP = 0.01 (10 splits) | 0.84618     |
+| 3 Classification tree (Random Forest) | Trees = 50, mtry = 3  | **0.99451** |
+
+Note all 4 sensors are used for this predictions.
 
 ## Conclusions
 
   - Modeling approach. As the outcome is a multi-categorical variable we
     have decided to use **classification algorithms**, which have
-    provided pretty **high accurate resutls**.
+    provided pretty **high accurate results**.
+
   - **Results** compared to the author. The accuracy reported by the
     main contributor \[1\] is 0.99414, which was predicted on the full
     har dataset. Our prediction, which was created on a subset of the
     har dataset (without overtraining), provided an accuracy of
-    **0.99445**.
+    **0.99451**.
+
+  - Regarding to the **importance of the sensors**. We have observed how
+    the sensor 1 (placed on waist) is the most important, the sensor 4
+    (placed on right upper arm) is the one that provides less important
+    information. By omitting the use of this sensor we could get an
+    accuracy close to 0.991.
+
   - **Future work**. The features related to the user are not included
     in the described models. The **user effect** is something to be
     analysed. The testbench was used on the data extracted from the same
