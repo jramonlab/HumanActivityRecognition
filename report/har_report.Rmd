@@ -4,7 +4,6 @@ subtitle: "HarvardX"
 author: "Jose Ramon Hernandez Galan"
 date: "18/11/2019"
 output:
-  github_document: default
   pdf_document: default
   html_document:
     df_print: paged
@@ -12,6 +11,7 @@ output:
     toc_float:
       collapsed: no
       smooth_scroll: no
+  github_document: default
 ---
 
 ```{r setup, include=FALSE}
